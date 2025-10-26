@@ -1,28 +1,56 @@
 {% extends 'base.html' %}
 
+{% block title %}Posts{% endblock %}
+
 {% block header %}
-  <h1>{% block title %}Posts{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action" href="{{ url_for('blog.create') }}">New</a>
-  {% endif %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Posts</h1>
+    {% if g.user %}
+      <a href="{{ url_for('blog.create') }}" class="btn btn-primary">New Post</a>
+    {% endif %}
+  </div>
 {% endblock %}
 
 {% block content %}
+<div class="accordion" id="postsAccordion">
   {% for post in posts %}
-    <article class="post">
-      <header>
-        <div>
-          <h1>{{ post['title'] }}</h1>
-          <div class="about">by {{ post['username'] }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
+  <div class="accordion-item mb-3 shadow-sm rounded-3">
+    <h2 class="accordion-header" id="heading{{ loop.index }}">
+      <button
+        class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#collapse{{ loop.index }}"
+        aria-expanded="{{ 'true' if loop.first else 'false' }}"
+        aria-controls="collapse{{ loop.index }}">
+        <div class="w-100">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">{{ post['title'] }}</span>
+            <small class="text-muted">{{ post['created'].strftime('%Y-%m-%d') }}</small>
+          </div>
+          <small class="text-secondary">by {{ post['username'] }}</small>
         </div>
-        {% if g.user['id'] == post['author_id'] %}
-          <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
+      </button>
+    </h2>
+
+    <div
+      id="collapse{{ loop.index }}"
+      class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+      aria-labelledby="heading{{ loop.index }}"
+      data-bs-parent="#postsAccordion">
+      <div class="accordion-body">
+        <p class="mb-3">{{ post['body'] }}</p>
+
+        {% if g.user and g.user['id'] == post['author_id'] %}
+          <a href="{{ url_for('blog.update', id=post['id']) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
         {% endif %}
-      </header>
-      <p class="body">{{ post['body'] }}</p>
-    </article>
-    {% if not loop.last %}
-      <hr>
-    {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center mt-5">
+    <p class="text-muted">No posts yet. {% if g.user %}<a href="{{ url_for('blog.create') }}">Create one!</a>{% endif %}</p>
+  </div>
   {% endfor %}
+</div>
 {% endblock %}
